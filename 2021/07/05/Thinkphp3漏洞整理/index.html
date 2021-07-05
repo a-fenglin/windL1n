@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.1k 字
+      3.4k 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      60
+      49
        分钟
     </span>
   
@@ -580,87 +580,6 @@
 </ol>
 </li>
 </ol>
-<h2 id="0x06-PHP微信动态二维码活码管理系统"><a href="#0x06-PHP微信动态二维码活码管理系统" class="headerlink" title="0x06 PHP微信动态二维码活码管理系统"></a>0x06 PHP微信动态二维码活码管理系统</h2><ol>
-<li><p>环境</p>
-<ul>
-<li><p>centos7，Apache2.4.46，mysql5.6.50，php5.6</p>
-</li>
-<li><p>宝塔面板7.4.7<br>内网面板地址: <a target="_blank" rel="noopener" href="http://192.168.122.147:8888/0116e386">http://192.168.122.147:8888/0116e386</a><br>username: wvmtb8v2<br>password: dcd474bf</p>
-</li>
-<li><p>后台地址：/index.php?s=/manage/public/login<br>前台地址：/login</p>
-</li>
-</ul>
-</li>
-<li><p>漏洞利用</p>
-<ul>
-<li><p>修改密码处可以直接修改管理员密码</p>
-<p>​    /api/UserController/updateInfos-&gt;updateUserFieldss</p>
-</li>
-</ul>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-comment">//重置用户密码public function updateUserFieldss($uid, $data)&#123;	if (empty($uid) || empty($data)) &#123; 		$this-&gt;error = &#x27;参数错误！26&#x27;;      return false;     &#125;       //更新用户信息       $data = $this-&gt;create($data, 2);       if ($data) &#123;         return $this-&gt;where(array(&#x27;id&#x27; =&gt; $uid))-&gt;save($data);       &#125;      return false;&#125;</span><br></code></pre></td></tr></table></figure>
-
-<p>​            确认了用户的uid，可以直接修改用户名和密码，包括管理员用户，uid一般为1。</p>
-<p><img src="F:\DAS\image-20210104105446637.png" srcset="/windL1n/img/loading.gif" lazyload alt="image-20210104105446637"></p>
-<ul>
-<li><p>缓存文件getshell</p>
-<p>缓存文件默认的路径是/~runtime/temp/，</p>
-<p>查看cookie可以得到sites_path=/www/wwwroot;Path=/www/wwwroot/new。其中那个”new”作为网站的名称。或者访问/themes/config.php，根据报错得到Fatal error:  Call to undefined function modC() in /www/wwwroot/new/themes/config.php on line 2。</p>
-<p>缓存文件名称是”网站名称_md5(系统默认数据加密KEY+缓存标识).php”；</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$name</span>  =  md5(C(<span class="hljs-string">&#x27;DATA_AUTH_KEY&#x27;</span>).<span class="hljs-variable">$name</span>);<br></code></pre></td></tr></table></figure>
-
-<p>比如key：cfU&amp;d-Bp#SAOa$9V;}E^~wqmy{L*Xs@e251WokgT</p>
-<p>缓存标识：conf_THEME_NOW_THEME</p>
-<p>网站名称：new1</p>
-<p>得到的缓存文件名为new1_10775b3c514362ab8354fc3259c75e2c.php</p>
-<p>在登录界面，选择记住密码，</p>
-<p><img src="F:\DAS\image-20210104092400916.png" srcset="/windL1n/img/loading.gif" lazyload alt="image-20210104092400916"></p>
-<p>返回系统默认数据加密KEY。</p>
-<p>在user/UcenterModel里，把C(‘DATA_AUTH_KEY’)拼接为cookie的缓存名称输出，但是如果这个KEY的值中有不符合php对cookie名称要求的，比如’,; \t\r\n\013\014’的任意一个，会报错，在这个Web应用里就是不会回显这个cookie，得不到这个KEY值。</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">if</span> (!<span class="hljs-keyword">$this</span>-&gt;getCookieUid() &amp;&amp; <span class="hljs-variable">$remember</span>) &#123;   <span class="hljs-variable">$expire</span> = <span class="hljs-number">3600</span> * <span class="hljs-number">24</span> * <span class="hljs-number">7</span>;        cookie(<span class="hljs-string">&#x27;QN_LOGGED_USER_&#x27;</span>.C(<span class="hljs-string">&#x27;DATA_AUTH_KEY&#x27;</span>), <span class="hljs-keyword">$this</span>-&gt;jiami(<span class="hljs-keyword">$this</span>-&gt;change() . <span class="hljs-string">&quot;.<span class="hljs-subst">&#123;$user[&#x27;uid&#x27;]&#125;</span>.<span class="hljs-subst">&#123;$token&#125;</span>&quot;</span>), <span class="hljs-variable">$expire</span>);     &#125;<br></code></pre></td></tr></table></figure>
-
-<ol>
-<li><p>前台getshell</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php">/user/model/UserModel.<span class="hljs-keyword">class</span>.php/query_user-&gt;writeCache-&gt;write_query_user_cache-&gt;    <span class="hljs-keyword">return</span> S(<span class="hljs-string">&quot;query_user_<span class="hljs-subst">&#123;$uid&#125;</span>_<span class="hljs-subst">&#123;$field&#125;</span>&quot;</span>, <span class="hljs-variable">$value</span>);<br></code></pre></td></tr></table></figure>
-
-<p>uid可以登录后，查看网页源码</p>
-</li>
-</ol>
-</li>
-</ul>
-<img src="F:\DAS\image-20210104103930450.png" srcset="/windL1n/img/loading.gif" lazyload alt="image-20210104103930450" style="zoom:80%;" />
-
-<p>​            uid的值就是5。拼接Kz/T&gt;~6-(!gu7P:O5CDkcd[L&amp;t`8”|Xp3fqEYN4+query_user_5_signature，对其进行md5加密。</p>
-<img src="F:\DAS\image-20210104104826518.png" srcset="/windL1n/img/loading.gif" lazyload alt="image-20210104104826518" style="zoom:50%;" />
-
-<p>​        在签名处写入小马.</p>
-<ol start="2">
-<li>后台getshell</li>
-</ol>
-<p>​        登录管理员后，在/manage/theme/lookTheme</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$aTheme</span> = I(<span class="hljs-string">&#x27;theme&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-string">&#x27;text&#x27;</span>);cookie(<span class="hljs-string">&#x27;TO_LOOK_THEME&#x27;</span>, <span class="hljs-variable">$aTheme</span>, <span class="hljs-keyword">array</span>(<span class="hljs-string">&#x27;prefix&#x27;</span> =&gt; <span class="hljs-string">&#x27;WZBV2&#x27;</span>, <span class="hljs-string">&#x27;expire&#x27;</span> =&gt; <span class="hljs-number">180</span>));<span class="hljs-comment">//重设cookieS(&#x27;conf_THEME_NOW_THEME&#x27;,$aTheme,180);//重设modC的session</span><br></code></pre></td></tr></table></figure>
-
-<p><img src="F:\DAS\image-20210104095832301.png" srcset="/windL1n/img/loading.gif" lazyload alt="image-20210104095832301"></p>
-<p>​    I函数这有个过滤，在%0D前加一个Ascii字符。计算出缓存文件名，连接小马。</p>
-<ul>
-<li><p>​    后台文件上传</p>
-<p>登录后台，在系统配置管理处，点击新增配置</p>
-<p>配置标识为DOWNLOAD_UPLOAD</p>
-<p>配置类型为数组</p>
-<p>配置值：</p>
-<p>mimes:;<br>exts:php;<br>maxSize:0;<br>rootPath:./uploads/download/;<br>hash:false;</p>
-</li>
-</ul>
-</li>
-</ol>
-<p><img src="F:\DAS\image-20210104124151373.png" srcset="/windL1n/img/loading.gif" lazyload alt="image-20210104124151373"></p>
-<p>​                    在/manage/file/uploadFile上传木马文件。</p>
-<p><img src="F:\DAS\image-20210104123713602.png" srcset="/windL1n/img/loading.gif" lazyload alt="image-20210104123713602"></p>
-<p>​                漏洞成因：</p>
-<p>​                在新增配置处，提交新的DOWNLOAD_UPLOAD配置，覆盖系统原本的配置，允许上传.php后缀的文件，</p>
-<p>​                在文件上传时，C函数调用新的DOWNLOAD_UPLOAD配置。</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$info</span> = <span class="hljs-variable">$File</span>-&gt;upload(	<span class="hljs-variable">$_FILES</span>,	C(<span class="hljs-string">&#x27;DOWNLOAD_UPLOAD&#x27;</span>),	C(<span class="hljs-string">&#x27;DOWNLOAD_UPLOAD_DRIVER&#x27;</span>),	C(<span class="hljs-string">&quot;UPLOAD_<span class="hljs-subst">&#123;$file_driver&#125;</span>_CONFIG&quot;</span>));<br></code></pre></td></tr></table></figure>
-
-<p>​                </p>
 
             </div>
             <hr>
